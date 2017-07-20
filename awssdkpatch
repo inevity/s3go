@@ -1,0 +1,83 @@
+diff --git a/private/signer/v2/v2.go b/private/signer/v2/v2.go
+index 88c3a2f..db61399 100644
+--- a/private/signer/v2/v2.go
++++ b/private/signer/v2/v2.go
+@@ -2,6 +2,7 @@ package v2
+ 
+ import (
+ 	"crypto/hmac"
++	"crypto/sha1"
+ 	"crypto/sha256"
+ 	"encoding/base64"
+ 	"errors"
+@@ -58,11 +59,11 @@ func SignSDKRequest(req *request.Request) {
+ 		return
+ 	}
+ 
+-	if req.HTTPRequest.Method != "POST" && req.HTTPRequest.Method != "GET" {
+-		// The V2 signer only supports GET and POST
+-		req.Error = errInvalidMethod
+-		return
+-	}
++	//	if req.HTTPRequest.Method != "POST" && req.HTTPRequest.Method != "GET" {
++	//		// The V2 signer only supports GET and POST
++	//		req.Error = errInvalidMethod
++	//		return
++	//	}
+ 
+ 	v2 := signer{
+ 		Request:     req.HTTPRequest,
+@@ -112,9 +113,10 @@ func (v2 *signer) Sign() error {
+ 
+ 	// Set new query parameters
+ 	v2.Query.Set("AWSAccessKeyId", credValue.AccessKeyID)
+-	v2.Query.Set("SignatureVersion", signatureVersion)
+-	v2.Query.Set("SignatureMethod", signatureMethod)
++	//	v2.Query.Set("SignatureVersion", signatureVersion)
++	//	v2.Query.Set("SignatureMethod", signatureMethod)
+ 	v2.Query.Set("Timestamp", v2.Time.UTC().Format(timeFormat))
++	// in header x-amz-date,Date
+ 	if credValue.SessionToken != "" {
+ 		v2.Query.Set("SecurityToken", credValue.SessionToken)
+ 	}
+@@ -148,6 +150,7 @@ func (v2 *signer) Sign() error {
+ 	query := strings.Join(queryKeysAndValues, "&")
+ 
+ 	// build the canonical string for the V2 signature
++	// not enonfy?
+ 	v2.stringToSign = strings.Join([]string{
+ 		method,
+ 		host,
+@@ -155,7 +158,7 @@ func (v2 *signer) Sign() error {
+ 		query,
+ 	}, "\n")
+ 
+-	hash := hmac.New(sha256.New, []byte(credValue.SecretAccessKey))
++	hash := hmac.New(sha1.New, []byte(credValue.SecretAccessKey))
+ 	hash.Write([]byte(v2.stringToSign))
+ 	v2.signature = base64.StdEncoding.EncodeToString(hash.Sum(nil))
+ 	v2.Query.Set("Signature", v2.signature)
+diff --git a/service/s3/service.go b/service/s3/service.go
+index 614e477..eb95a53 100644
+--- a/service/s3/service.go
++++ b/service/s3/service.go
+@@ -7,8 +7,9 @@ import (
+ 	"github.com/aws/aws-sdk-go/aws/client"
+ 	"github.com/aws/aws-sdk-go/aws/client/metadata"
+ 	"github.com/aws/aws-sdk-go/aws/request"
+-	"github.com/aws/aws-sdk-go/aws/signer/v4"
++	//	"github.com/aws/aws-sdk-go/aws/signer/v4"
+ 	"github.com/aws/aws-sdk-go/private/protocol/restxml"
++	"github.com/aws/aws-sdk-go/private/signer/v2"
+ )
+ 
+ // S3 provides the API operation methods for making requests to
+@@ -65,7 +66,7 @@ func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegio
+ 	}
+ 
+ 	// Handlers
+-	svc.Handlers.Sign.PushBackNamed(v4.SignRequestHandler)
++	svc.Handlers.Sign.PushBackNamed(v2.SignRequestHandler)
+ 	svc.Handlers.Build.PushBackNamed(restxml.BuildHandler)
+ 	svc.Handlers.Unmarshal.PushBackNamed(restxml.UnmarshalHandler)
+ 	svc.Handlers.UnmarshalMeta.PushBackNamed(restxml.UnmarshalMetaHandler)
