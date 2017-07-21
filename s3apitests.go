@@ -14,8 +14,6 @@ import (
 	. "github.com/inevity/s3go/bktobj"
 )
 
-//const usage = `usage`
-//sneaker rm <path>
 const usage = `s3apitests  manage cli.
 Usage:
   s3apitests ls [<pattern>]
@@ -85,6 +83,32 @@ func createuser(uid interface{}) (suid string, acckey string, seckey string, F *
 	return suid, acckey, seckey, F
 
 }
+func deluser(uid string) (gF *frisby.Frisby) {
+	var url string
+
+	if uid != "" {
+		url = b + uid
+	}
+	fmt.Println(url)
+
+	greq, _ := http.NewRequest("DELETE", url, nil)
+
+	awsauth.SignS3(greq, awsauth.Credentials{
+		AccessKeyID:     "8C9TU7JU9OL1TMGUD7MC",
+		SecretAccessKey: "ZTydkPh5819CwoXy7rteSBeRRqjAAS2Fw8t25jTU",
+		//	SecurityToken: "Security Token",	// STS (optional)
+	}) // Automatically chooses the best signing mechanism for the service
+
+	gF = frisby.Create("Test successful delete user").Delete(url)
+	for k, vv := range greq.Header {
+		for _, n := range vv {
+			gF.SetHeader(k, n) //concact or first
+		}
+	}
+	gF.SetHeader("Content-Type", "").Send().ExpectStatus(200)
+	gF.PrintBody()
+	return gF
+}
 func getuserinfo(uid string) (gF *frisby.Frisby) {
 	var url string
 
@@ -111,12 +135,15 @@ func getuserinfo(uid string) (gF *frisby.Frisby) {
 	gF.PrintBody()
 	return gF
 }
-func getuserstats(uid string, tocheck string, value interface{}) (gF *frisby.Frisby) {
+func getuserstats(uid string, tocheck string, value interface{}, bucket string, name string) (gF *frisby.Frisby) {
 
 	var url string
 
 	if uid != "" {
 		url = bkturl + "?uid=" + uid
+		if bucket != "" {
+			url = url + "&bucket=" + bucket
+		}
 	} else {
 		url = bkturl
 	}
@@ -130,7 +157,8 @@ func getuserstats(uid string, tocheck string, value interface{}) (gF *frisby.Fri
 		//	SecurityToken: "Security Token",	// STS (optional)
 	}) // Automatically chooses the best signing mechanism for the service
 
-	gF = frisby.Create("Test successful get userstats").Get(url)
+	//gF = frisby.Create("Test successful get userstats").Get(url)
+	gF = frisby.Create(name).Get(url)
 	for k, vv := range req.Header {
 		for _, n := range vv {
 			gF.SetHeader(k, n) //concact or first
@@ -138,7 +166,11 @@ func getuserstats(uid string, tocheck string, value interface{}) (gF *frisby.Fri
 
 	}
 	if uid != "" {
-		gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson(tocheck, value) // this one object have put
+		if bucket != "" {
+			gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson(tocheck, value) // this one object have put
+		} else {
+			gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson(tocheck, value) // this one object have put
+		}
 	} else {
 		gF.SetHeader("Content-Type", "").Send().ExpectStatus(200)
 	}
@@ -191,15 +223,16 @@ func main() {
 	// get user stats test for one object!
 	// todo: abstratt this ,(method,url,accessid/key,testname,set_header)
 	// "http://{{ ipontest }}:6080/admin/bucket?uid={{ item }}"
-	gF = getuserstats(user, "2.user_usage.objects", 1)
+	gF = getuserstats(user, "2.user_usage.objects", 1, "", "test user stats ,one object")
 
 	// get user stats test for no bucket
 	// todo: abstratt this ,(method,url,accessid/key,testname,set_header)
 	// "http://{{ ipontest }}:6080/admin/bucket?uid={{ item }}"
-	gF = getuserstats(user1, "1.user_usage.objects", 0)
+	gF = getuserstats(user1, "1.user_usage.objects", 0, "", "test user stats,no bucket")
+	gF = deluser(user1)
 
 	// test all userstats.
-	gF = getuserstats("", "", 0)
+	gF = getuserstats("", "", 0, "", "test alluserstats")
 
 	// test a bucket stats by user !
 
@@ -210,6 +243,10 @@ func main() {
 	//	if user != "" {
 	//		url = b + "?uid=" + user +"&bucket=newbucket"
 	//	}
+	gF = getuserstats(user, "0.usage.objects", 1, "newbucket9", "test stats by user by bucket")
+	//	gF = getuserstats(user, "1.user_usage.objects", 0, "newbucket9", "test stats by user by bucket")
+
+	//todo: test bucket quota?
 
 	frisby.Global.PrintReport()
 
