@@ -75,22 +75,11 @@ func createuser(uid interface{}) (suid string, acckey string, seckey string, F *
 
 	}
 	F.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectContent("keys").ExpectJson("0.keys.user", user)
-	//	F.PrintBody()
-
-	//	var acckey, seckey string
-	//	var seckey string
-
 	F.AfterJson(func(F *frisby.Frisby, json *simplejson.Json, err error) {
-		//val, _ := json.Get("proxy").String()
-		//acckey := json.GetIndex(0).Get("keys").Get("access_key")
 		acckey, _ = json.GetIndex(0).Get("keys").Get("access_key").String()
 		seckey, _ = json.GetIndex(0).Get("keys").Get("secret_key").String()
-		//acckey = aws.StringValue(tempacc)
-		//acckey = aws.StringValue(json.GetIndex(0).Get("keys").Get("access_key").String())
-		//acckey = tempacc
 		fmt.Println("acckey:", acckey)
 		fmt.Println("seckey:", seckey)
-		//	frisby.Global.SetProxy(val)
 	})
 	suid = user // must need?
 	return suid, acckey, seckey, F
@@ -148,9 +137,6 @@ func getuserstats(uid string, tocheck string, value interface{}) (gF *frisby.Fri
 		}
 
 	}
-	//gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectContent("keys").ExpectJson("0.keys.user", user)
-	//gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson("1.user_usage.objects", 0)//no bucket.
-	//gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson("2.user_usage.objects", 1) // this one object have put
 	if uid != "" {
 		gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson(tocheck, value) // this one object have put
 	} else {
@@ -172,7 +158,6 @@ func main() {
 	logger.Print("uid args") //why not output to standard console
 	logger.Print("uid args: %s", args["--uid"])
 	fmt.Println("buf:", buf)
-	// which io; debug log level
 
 	if args["version"] == true {
 		fmt.Printf(
@@ -207,97 +192,15 @@ func main() {
 	// todo: abstratt this ,(method,url,accessid/key,testname,set_header)
 	// "http://{{ ipontest }}:6080/admin/bucket?uid={{ item }}"
 	gF = getuserstats(user, "2.user_usage.objects", 1)
-	//	var url string
-	//	bkturl := "http://192.168.56.101:6080/admin/bucket"
-	//
-	//	if user != "" {
-	//		url = bkturl + "?uid=" + user
-	//	}
-	//	fmt.Println(url)
-	//	req, _ := http.NewRequest("GET", url, nil)
-	//
-	//	awsauth.SignS3(req, awsauth.Credentials{
-	//		AccessKeyID:     "8C9TU7JU9OL1TMGUD7MC",
-	//		SecretAccessKey: "ZTydkPh5819CwoXy7rteSBeRRqjAAS2Fw8t25jTU",
-	//		//	SecurityToken: "Security Token",	// STS (optional)
-	//	}) // Automatically chooses the best signing mechanism for the service
-	//
-	//	gF = frisby.Create("Test successful get userstats").Get(url)
-	//	for k, vv := range req.Header {
-	//		for _, n := range vv {
-	//			gF.SetHeader(k, n) //concact or first
-	//		}
-	//
-	//	}
-	//	//gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectContent("keys").ExpectJson("0.keys.user", user)
-	//	//gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson("1.user_usage.objects", 0)//no bucket.
-	//	gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson("2.user_usage.objects", 1) // this one object have put
-	//	//	// json only one item,this two item.need be index 1.
-	//	gF.PrintBody()
-	//	//	//debug
-	//	//	simp_json, err := gF.Resp.Json()
-	//	//	if err != nil {
-	//	//		gF.AddError(err.Error())
-	//	//		//		return F
-	//	//	}
-	//	//	fmt.Println("json parse:", simp_json.GetIndex(1).Get("user_usage").Get("objects"))
-	//	//
-	//
 
 	// get user stats test for no bucket
 	// todo: abstratt this ,(method,url,accessid/key,testname,set_header)
 	// "http://{{ ipontest }}:6080/admin/bucket?uid={{ item }}"
-	//	var url string
-	//
-	//	if user != "" {
-	//		url = bkturl + "?uid=" + user1
-	//	}
-	//	fmt.Println(url)
-	//	req, _ := http.NewRequest("GET", url, nil)
-	//
-	//	awsauth.SignS3(req, awsauth.Credentials{
-	//		AccessKeyID:     "8C9TU7JU9OL1TMGUD7MC",
-	//		SecretAccessKey: "ZTydkPh5819CwoXy7rteSBeRRqjAAS2Fw8t25jTU",
-	//		//	SecurityToken: "Security Token",	// STS (optional)
-	//	}) // Automatically chooses the best signing mechanism for the service
-	//
-	//	gF = frisby.Create("Test successful get userstats").Get(url)
-	//	for k, vv := range req.Header {
-	//		for _, n := range vv {
-	//			gF.SetHeader(k, n) //concact or first
-	//		}
-	//
-	//	}
-	//	gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson("1.user_usage.objects", 0) // this one object have put
-	//	gF.PrintBody()
 	gF = getuserstats(user1, "1.user_usage.objects", 0)
 
 	// test all userstats.
 	gF = getuserstats("", "", 0)
 
-	//	var url string
-	//	if user != "" {
-	//		url = bkturl
-	//	}
-	//	fmt.Println(url)
-	//	req, _ := http.NewRequest("GET", url, nil)
-	//
-	//	awsauth.SignS3(req, awsauth.Credentials{
-	//		AccessKeyID:     "8C9TU7JU9OL1TMGUD7MC",
-	//		SecretAccessKey: "ZTydkPh5819CwoXy7rteSBeRRqjAAS2Fw8t25jTU",
-	//	}) // Automatically chooses the best signing mechanism for the service
-	//
-	//	gF = frisby.Create("Test successful get alluserstats").Get(url)
-	//	for k, vv := range req.Header {
-	//		for _, n := range vv {
-	//			gF.SetHeader(k, n) //concact or first
-	//		}
-	//
-	//	}
-	//	//gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson("1.user_usage.objects", 0)
-	//	gF.SetHeader("Content-Type", "").Send().ExpectStatus(200)
-	//	gF.PrintBody()
-	//
 	// test a bucket stats by user !
 
 	// need test bucket not exisit,bucket is empty,bucket have objects.
