@@ -9,6 +9,9 @@ import (
 	"log"
 	"net/http"
 	//	"net/http/httputil"
+	//	"github.com/aws/aws-sdk-go/aws"
+	"github.com/bitly/go-simplejson"
+	. "github.com/inevity/s3go/bktobj"
 )
 
 //const usage = `usage`
@@ -38,8 +41,11 @@ var (
 	buildTime = "20170718" // time of build
 )
 
+func createuser(uid string) {
+}
+
 func main() {
-	fmt.Println("Frisby!\n")
+	//	fmt.Println("Frisby!\n")
 	args, err := docopt.Parse(usage, nil, true, version, false)
 	if err != nil {
 		log.Fatal(err)
@@ -48,7 +54,7 @@ func main() {
 	logger := log.New(&buf, "logger: ", log.Lshortfile)
 	logger.Print("uid args") //why not output to standard console
 	logger.Print("uid args: %s", args["--uid"])
-	//	fmt.Printf("buf:", buf)
+	fmt.Println("buf:", buf)
 	// which io; debug log level
 
 	if args["version"] == true {
@@ -61,6 +67,8 @@ func main() {
 	//	manager := loadManager()
 	//https://github.com/codahale/sneaker/blob/master/cmd/sneaker/main.go
 	//cli write
+
+	// create user,using this acckey as admin key
 	var url string
 	var user string
 	var b string
@@ -90,7 +98,30 @@ func main() {
 	F.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectContent("keys").ExpectJson("0.keys.user", user)
 	//	F.PrintBody()
 
+	var acckey, seckey string
+	//	var seckey string
+
+	F.AfterJson(func(F *frisby.Frisby, json *simplejson.Json, err error) {
+		//val, _ := json.Get("proxy").String()
+		//acckey := json.GetIndex(0).Get("keys").Get("access_key")
+		acckey, _ = json.GetIndex(0).Get("keys").Get("access_key").String()
+		seckey, _ = json.GetIndex(0).Get("keys").Get("secret_key").String()
+		//acckey = aws.StringValue(tempacc)
+		//acckey = aws.StringValue(json.GetIndex(0).Get("keys").Get("access_key").String())
+		//acckey = tempacc
+		fmt.Println("acckey:", acckey)
+		fmt.Println("seckey:", seckey)
+		//	frisby.Global.SetProxy(val)
+	})
+
+	// create bucket, and create object.
+	// get above use acc and sec key ,then put bucket and object.
+	DoBktObj(acckey, seckey, "newbucket9", "testobject9", 0, 0)
+
+	//create another user,check user stats then put bucket,check user stats,put n object ,the check user stats.
+
 	//get userinfo
+
 	if user != "" {
 		url = b + user
 	}
@@ -112,7 +143,7 @@ func main() {
 
 	}
 	gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectContent("keys").ExpectJson("0.keys.user", user)
-	//	gF.PrintBody()
+	gF.PrintBody()
 
 	// get user stats test
 	// todo: abstratt this ,(method,url,accessid/key,testname,set_header)
@@ -139,19 +170,19 @@ func main() {
 
 	}
 	//gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectContent("keys").ExpectJson("0.keys.user", user)
-	//gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson("1.user_usage.objects", int64(0))
-	gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson("1.user_usage.objects", 0)
-	// json only one item,this two item.need be index 1.
-	//	gF.PrintBody()
-	//	//debug
-	//	simp_json, err := gF.Resp.Json()
-	//	if err != nil {
-	//		gF.AddError(err.Error())
-	//		//		return F
-	//	}
-	//	fmt.Println("json parse:", simp_json.GetIndex(1).Get("user_usage").Get("objects"))
+	//gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson("1.user_usage.objects", 0)//no bucket.
+	gF.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectJson("2.user_usage.objects", 1) // this one object have put
+	//	// json only one item,this two item.need be index 1.
+	gF.PrintBody()
+	//	//	//debug
+	//	//	simp_json, err := gF.Resp.Json()
+	//	//	if err != nil {
+	//	//		gF.AddError(err.Error())
+	//	//		//		return F
+	//	//	}
+	//	//	fmt.Println("json parse:", simp_json.GetIndex(1).Get("user_usage").Get("objects"))
+	//	//
 	//
-
 	// test all userstats.
 
 	b = "http://192.168.56.101:6080/admin/bucket"
