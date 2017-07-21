@@ -39,9 +39,59 @@ var (
 	version   = "v1"       // version of sneaker
 	goVersion = "v1.8.3"   // version of go we build with
 	buildTime = "20170718" // time of build
+	b         = "http://192.168.56.101:6080/admin/user?uid="
 )
 
-func createuser(uid string) {
+//argument maybe interface.
+//func createuser(uid string) (acckey string, seckey string) {
+func createuser(uid interface{}) (suid string, acckey string, seckey string, F *frisby.Frisby) {
+	var url string
+	var user string
+	//	var b string
+	//if s, ok := args["--uid"].(string); ok {
+	if s, ok := uid.(string); ok {
+		url = s
+		url = b + url + "&quota-type=user&max-size-kb=10000000&max-objects=10000&enabled=-1"
+		user = s
+	} else {
+		url = "http://192.168.56.101:6080/admin/user?uid=uuuuuuu8&quota-type=user&max-size-kb=10000000&max-objects=10000&enabled=-1"
+	}
+	req, _ := http.NewRequest("PUT", url, nil)
+
+	awsauth.SignS3(req, awsauth.Credentials{
+		AccessKeyID:     "8C9TU7JU9OL1TMGUD7MC",
+		SecretAccessKey: "ZTydkPh5819CwoXy7rteSBeRRqjAAS2Fw8t25jTU",
+		//	SecurityToken: "Security Token",	// STS (optional)
+	}) // Automatically chooses the best signing mechanism for the service
+
+	F = frisby.Create("Test successful user create").Put(url)
+	for k, vv := range req.Header {
+		for _, n := range vv {
+			F.SetHeader(k, n) //concact or first
+		}
+
+	}
+	F.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectContent("keys").ExpectJson("0.keys.user", user)
+	//	F.PrintBody()
+
+	//	var acckey, seckey string
+	//	var seckey string
+
+	F.AfterJson(func(F *frisby.Frisby, json *simplejson.Json, err error) {
+		//val, _ := json.Get("proxy").String()
+		//acckey := json.GetIndex(0).Get("keys").Get("access_key")
+		acckey, _ = json.GetIndex(0).Get("keys").Get("access_key").String()
+		seckey, _ = json.GetIndex(0).Get("keys").Get("secret_key").String()
+		//acckey = aws.StringValue(tempacc)
+		//acckey = aws.StringValue(json.GetIndex(0).Get("keys").Get("access_key").String())
+		//acckey = tempacc
+		fmt.Println("acckey:", acckey)
+		fmt.Println("seckey:", seckey)
+		//	frisby.Global.SetProxy(val)
+	})
+	suid = user // must need?
+	return suid, acckey, seckey, F
+
 }
 
 func main() {
@@ -69,50 +119,7 @@ func main() {
 	//cli write
 
 	// create user,using this acckey as admin key
-	var url string
-	var user string
-	var b string
-	b = "http://192.168.56.101:6080/admin/user?uid="
-	if s, ok := args["--uid"].(string); ok {
-		url = s
-		url = b + url + "&quota-type=user&max-size-kb=10000000&max-objects=10000&enabled=-1"
-		user = s
-	} else {
-		url = "http://192.168.56.101:6080/admin/user?uid=uuuuuuu8&quota-type=user&max-size-kb=10000000&max-objects=10000&enabled=-1"
-	}
-	req, _ := http.NewRequest("PUT", url, nil)
-
-	awsauth.SignS3(req, awsauth.Credentials{
-		AccessKeyID:     "8C9TU7JU9OL1TMGUD7MC",
-		SecretAccessKey: "ZTydkPh5819CwoXy7rteSBeRRqjAAS2Fw8t25jTU",
-		//	SecurityToken: "Security Token",	// STS (optional)
-	}) // Automatically chooses the best signing mechanism for the service
-
-	F := frisby.Create("Test successful user create").Put(url)
-	for k, vv := range req.Header {
-		for _, n := range vv {
-			F.SetHeader(k, n) //concact or first
-		}
-
-	}
-	F.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectContent("keys").ExpectJson("0.keys.user", user)
-	//	F.PrintBody()
-
-	var acckey, seckey string
-	//	var seckey string
-
-	F.AfterJson(func(F *frisby.Frisby, json *simplejson.Json, err error) {
-		//val, _ := json.Get("proxy").String()
-		//acckey := json.GetIndex(0).Get("keys").Get("access_key")
-		acckey, _ = json.GetIndex(0).Get("keys").Get("access_key").String()
-		seckey, _ = json.GetIndex(0).Get("keys").Get("secret_key").String()
-		//acckey = aws.StringValue(tempacc)
-		//acckey = aws.StringValue(json.GetIndex(0).Get("keys").Get("access_key").String())
-		//acckey = tempacc
-		fmt.Println("acckey:", acckey)
-		fmt.Println("seckey:", seckey)
-		//	frisby.Global.SetProxy(val)
-	})
+	user, acckey, seckey, F := createuser(args["--uid"])
 
 	// create bucket, and create object.
 	// get above use acc and sec key ,then put bucket and object.
@@ -121,6 +128,7 @@ func main() {
 	//create another user,check user stats then put bucket,check user stats,put n object ,the check user stats.
 
 	//get userinfo
+	var url string
 
 	if user != "" {
 		url = b + user
