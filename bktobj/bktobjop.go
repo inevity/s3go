@@ -22,14 +22,32 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-func main() {
-	bucket := aws.String("newbucket3")
-	// no need append /.
-	key := aws.String("testobject3")
+type boop struct {
+	bucket string
+	key    string
+}
+
+func DoBktObj(acckey string, seckey string, bucket string, key string, n int, m int) {
+	do := boop{
+		bucket: bucket,
+		key:    key,
+	}
+	fmt.Print("n:", n)
+	if n == 0 && m == 0 {
+		do.Onebktobj(acckey, seckey, bucket, key)
+	}
+}
+
+//func (ops *boop) Onebktobj(sbucket string, skey string) error {
+func (ops *boop) Onebktobj(acckey, seckey, sbucket string, skey string) {
+	fmt.Println("on Onebktobj!!!!")
+	bucket := aws.String(sbucket)
+	//	// no need append /.
+	key := aws.String(skey)
 
 	// Configure to use dnion Server
 	s3Config := &aws.Config{
-		Credentials:      credentials.NewStaticCredentials("8C9TU7JU9OL1TMGUD7MC", "ZTydkPh5819CwoXy7rteSBeRRqjAAS2Fw8t25jTU", ""),
+		Credentials:      credentials.NewStaticCredentials(acckey, seckey, ""),
 		Endpoint:         aws.String("http://192.168.56.101:6081"),
 		Region:           aws.String("us-east-1"),
 		DisableSSL:       aws.Bool(true),
