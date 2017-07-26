@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	//	"errors"
 	"fmt"
 	"github.com/docopt/docopt-go"
 	"github.com/smartystreets/go-aws-auth"
@@ -73,9 +74,23 @@ func createuser(uid interface{}) (suid string, acckey string, seckey string, F *
 
 	}
 	F.SetHeader("Content-Type", "").Send().ExpectStatus(200).ExpectContent("keys").ExpectJson("0.keys.user", user)
+
+	F.PrintBody()
+	var ok error
+	//	var ok error
+	//err handling
+	//if F.AfterContent Error
 	F.AfterJson(func(F *frisby.Frisby, json *simplejson.Json, err error) {
-		acckey, _ = json.GetIndex(0).Get("keys").Get("access_key").String()
-		seckey, _ = json.GetIndex(0).Get("keys").Get("secret_key").String()
+		// nil deference avoid?
+		if acckey, ok = json.GetIndex(0).Get("keys").Get("access_key").String(); ok != nil {
+			fmt.Println(ok)
+			//exit
+		}
+
+		if seckey, ok = json.GetIndex(0).Get("keys").Get("secret_key").String(); ok != nil {
+			fmt.Println(ok)
+		}
+
 		fmt.Println("acckey:", acckey)
 		fmt.Println("seckey:", seckey)
 	})
