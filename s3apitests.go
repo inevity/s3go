@@ -38,11 +38,17 @@ var (
 	version   = "v1"       // version of sneaker
 	goVersion = "v1.8.3"   // version of go we build with
 	buildTime = "20170718" // time of build
-	b         = "http://192.168.56.101:6080/admin/user?uid="
-	bkturl    = "http://192.168.56.101:6080/admin/bucket"
+	server    = "http://121.14.254.234"
+	admport   = ":6080"
+	//	b         = "http://192.168.56.101:6080/admin/user?uid="
+	b = server + admport + "/admin/user?uid="
+	//	bkturl    = "http://192.168.56.101:6080/admin/bucket"
+	bkturl = server + admport + "/admin/bucket"
 
 //	url =
 )
+
+// all admin user use the root accessid to auth
 
 //argument maybe interface.
 //func createuser(uid string) (acckey string, seckey string) {
@@ -56,13 +62,14 @@ func createuser(uid interface{}) (suid string, acckey string, seckey string, F *
 		url = b + url + "&quota-type=user&max-size-kb=10000000&max-objects=10000&enabled=-1"
 		user = s
 	} else {
-		url = "http://192.168.56.101:6080/admin/user?uid=uuuuuuu8&quota-type=user&max-size-kb=10000000&max-objects=10000&enabled=-1"
+		//url = "http://192.168.56.101:6080/admin/user?uid=uuuuuuu8&quota-type=user&max-size-kb=10000000&max-objects=10000&enabled=-1"
+		url = server + admport + "/admin/user?uid=uuuuuuu8&quota-type=user&max-size-kb=10000000&max-objects=10000&enabled=-1"
 	}
 	req, _ := http.NewRequest("PUT", url, nil)
 
 	awsauth.SignS3(req, awsauth.Credentials{
-		AccessKeyID:     "8C9TU7JU9OL1TMGUD7MC",
-		SecretAccessKey: "ZTydkPh5819CwoXy7rteSBeRRqjAAS2Fw8t25jTU",
+		AccessKeyID:     "1WYCCJZ9JRLWZU8JTDQJ",
+		SecretAccessKey: "PXhbQDJVeF1PsXw5tsCuIaKY0N8s1BP2J3yCn9K3",
 		//	SecurityToken: "Security Token",	// STS (optional)
 	}) // Automatically chooses the best signing mechanism for the service
 
@@ -109,8 +116,8 @@ func deluser(uid string) (gF *frisby.Frisby) {
 	greq, _ := http.NewRequest("DELETE", url, nil)
 
 	awsauth.SignS3(greq, awsauth.Credentials{
-		AccessKeyID:     "8C9TU7JU9OL1TMGUD7MC",
-		SecretAccessKey: "ZTydkPh5819CwoXy7rteSBeRRqjAAS2Fw8t25jTU",
+		AccessKeyID:     "1WYCCJZ9JRLWZU8JTDQJ",
+		SecretAccessKey: "PXhbQDJVeF1PsXw5tsCuIaKY0N8s1BP2J3yCn9K3",
 		//	SecurityToken: "Security Token",	// STS (optional)
 	}) // Automatically chooses the best signing mechanism for the service
 
@@ -135,8 +142,8 @@ func getuserinfo(uid string) (gF *frisby.Frisby) {
 	greq, _ := http.NewRequest("GET", url, nil)
 
 	awsauth.SignS3(greq, awsauth.Credentials{
-		AccessKeyID:     "8C9TU7JU9OL1TMGUD7MC",
-		SecretAccessKey: "ZTydkPh5819CwoXy7rteSBeRRqjAAS2Fw8t25jTU",
+		AccessKeyID:     "1WYCCJZ9JRLWZU8JTDQJ",
+		SecretAccessKey: "PXhbQDJVeF1PsXw5tsCuIaKY0N8s1BP2J3yCn9K3",
 		//	SecurityToken: "Security Token",	// STS (optional)
 	}) // Automatically chooses the best signing mechanism for the service
 
@@ -167,8 +174,8 @@ func getuserstats(uid string, tocheck string, value interface{}, bucket string, 
 	req, _ := http.NewRequest("GET", url, nil)
 
 	awsauth.SignS3(req, awsauth.Credentials{
-		AccessKeyID:     "8C9TU7JU9OL1TMGUD7MC",
-		SecretAccessKey: "ZTydkPh5819CwoXy7rteSBeRRqjAAS2Fw8t25jTU",
+		AccessKeyID:     "1WYCCJZ9JRLWZU8JTDQJ",
+		SecretAccessKey: "PXhbQDJVeF1PsXw5tsCuIaKY0N8s1BP2J3yCn9K3",
 		//	SecurityToken: "Security Token",	// STS (optional)
 	}) // Automatically chooses the best signing mechanism for the service
 
@@ -222,7 +229,8 @@ func main() {
 
 	// create bucket, and create object.
 	// get above use acc and sec key ,then put bucket and object.
-	DoBktObj(acckey, seckey, "newbucket9", "testobject9", 0, 0)
+	var dataport = ":6081"
+	DoBktObj(acckey, seckey, server+dataport, "newbucket9", "testobject9", 0, 0)
 
 	//create another user,check user stats then put bucket,check user stats,put n object ,the check user stats.
 	var emptyuser string

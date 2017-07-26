@@ -27,19 +27,20 @@ type boop struct {
 	key    string
 }
 
-func DoBktObj(acckey string, seckey string, bucket string, key string, n int, m int) {
+func DoBktObj(acckey string, seckey string, server string, bucket string, key string, n int, m int) {
 	do := boop{
 		bucket: bucket,
 		key:    key,
 	}
 	fmt.Print("n:", n)
 	if n == 0 && m == 0 {
-		do.Onebktobj(acckey, seckey, bucket, key)
+		do.Onebktobj(acckey, seckey, bucket, key, server)
+		// need improve ,use the member of boop
 	}
 }
 
 //func (ops *boop) Onebktobj(sbucket string, skey string) error {
-func (ops *boop) Onebktobj(acckey, seckey, sbucket string, skey string) {
+func (ops *boop) Onebktobj(acckey string, seckey string, sbucket string, skey string, server string) {
 	fmt.Println("on Onebktobj!!!!")
 	bucket := aws.String(sbucket)
 	//	// no need append /.
@@ -47,8 +48,9 @@ func (ops *boop) Onebktobj(acckey, seckey, sbucket string, skey string) {
 
 	// Configure to use dnion Server
 	s3Config := &aws.Config{
-		Credentials:      credentials.NewStaticCredentials(acckey, seckey, ""),
-		Endpoint:         aws.String("http://192.168.56.101:6081"),
+		Credentials: credentials.NewStaticCredentials(acckey, seckey, ""),
+		//		Endpoint:         aws.String("http://192.168.56.101:6081"),
+		Endpoint:         aws.String(server),
 		Region:           aws.String("us-east-1"),
 		DisableSSL:       aws.Bool(true),
 		S3ForcePathStyle: aws.Bool(true),
