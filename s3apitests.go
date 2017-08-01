@@ -231,7 +231,7 @@ func main() {
 	// create bucket, and create object.
 	// get above use acc and sec key ,then put bucket and object.
 	var dataport = ":6081"
-	DoBktObj(acckey, seckey, server+dataport, "newbucket9", "testobject9", 0, 0)
+	DoBktObj(acckey, seckey, server+dataport, "newbucket9", "test@object9", 0, 0)
 
 	//create another user,check user stats then put bucket,check user stats,put n object ,the check user stats.
 	var emptyuser string

@@ -29,6 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol/rest"
 )
 
 var (
@@ -142,8 +143,9 @@ func (v2 *signer) Sign() error {
 	//	path := url.PathEscape(uri)
 	//why we should comment this escape?
 	//	path := pathEscape(uri)
+	path := rest.EscapePath(uri, false)
 
-	path := uri
+	//	path := uri
 	if !v2.pathStyle {
 		host := strings.SplitN(v2.Request.URL.Host, ".", 2)[0]
 		path = "/" + host + uri
