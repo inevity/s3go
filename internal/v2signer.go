@@ -38,7 +38,7 @@ var (
 const (
 	signatureVersion = "2"
 	signatureMethod  = "HmacSHA1"
-	timeFormat       = "Mon, 2 Jan 2006 15:04:05 +0000"
+	timeFormat       = "Mon, 02 Jan 2006 15:04:05 +0000"
 )
 
 var subresources = []string{
@@ -97,6 +97,11 @@ func SignV2(req *request.Request) {
 	}
 
 	req.Error = v2.Sign()
+}
+
+func pathEscape(path string) string {
+	u := url.URL{Path: path}
+	return u.EscapedPath()
 }
 
 func (v2 *signer) Sign() error {

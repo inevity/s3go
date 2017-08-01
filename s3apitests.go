@@ -38,8 +38,9 @@ var (
 	version   = "v1"       // version of sneaker
 	goVersion = "v1.8.3"   // version of go we build with
 	buildTime = "20170718" // time of build
-	server    = "http://121.14.254.234"
-	admport   = ":6080"
+	//server    = "http://121.14.254.234"
+	server  = "http://192.168.56.101"
+	admport = ":6080"
 	//	b         = "http://192.168.56.101:6080/admin/user?uid="
 	b = server + admport + "/admin/user?uid="
 	//	bkturl    = "http://192.168.56.101:6080/admin/bucket"
