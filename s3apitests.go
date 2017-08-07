@@ -11,6 +11,7 @@ import (
 	"net/http"
 	//	"net/http/httputil"
 	//	"github.com/aws/aws-sdk-go/aws"
+	//	"github.com/aws/aws-sdk-go/private/protocol/rest"
 	"github.com/bitly/go-simplejson"
 	. "github.com/inevity/s3go/bktobj"
 )
@@ -38,9 +39,10 @@ var (
 	version   = "v1"       // version of sneaker
 	goVersion = "v1.8.3"   // version of go we build with
 	buildTime = "20170718" // time of build
-	//server    = "http://121.14.254.234"
-	server  = "http://192.168.56.101"
-	admport = ":6080"
+	server    = "http://121.14.254.234"
+	//server  = "http://192.168.56.101"
+	admport  = ":16080"
+	dataport = ":16081"
 	//	b         = "http://192.168.56.101:6080/admin/user?uid="
 	b = server + admport + "/admin/user?uid="
 	//	bkturl    = "http://192.168.56.101:6080/admin/bucket"
@@ -230,8 +232,8 @@ func main() {
 
 	// create bucket, and create object.
 	// get above use acc and sec key ,then put bucket and object.
-	var dataport = ":6081"
-	DoBktObj(acckey, seckey, server+dataport, "newbucket9", "test@object9", 0, 0)
+	// todo; fail ,check DoBktObj(acckey, seckey, server+dataport, "newbucket9", "test@object9", 0, 0)
+	DoBktObj(acckey, seckey, server+dataport, "newbucket9", "testob@ject9", 0, 0)
 
 	//create another user,check user stats then put bucket,check user stats,put n object ,the check user stats.
 	var emptyuser string
