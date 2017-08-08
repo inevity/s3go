@@ -54,6 +54,7 @@ func (ops *boop) Onebktobj(acckey string, seckey string, sbucket string, skey st
 		Region:           aws.String("us-east-1"),
 		DisableSSL:       aws.Bool(true),
 		S3ForcePathStyle: aws.Bool(true),
+		LogLevel:         aws.LogLevel(aws.LogDebug | aws.LogDebugWithRequestErrors | aws.LogDebugWithSigning),
 	}
 	newSession := session.New(s3Config)
 
@@ -76,7 +77,7 @@ func (ops *boop) Onebktobj(acckey string, seckey string, sbucket string, skey st
 
 	// Upload a new object "testobject" with the string "Hello World!" to our "newbucket".
 	_, err = s3Client.PutObject(&s3.PutObjectInput{
-		Body:   strings.NewReader("Hello from Minio!!"),
+		Body:   strings.NewReader("Hello!!"),
 		Bucket: bucket,
 		Key:    key,
 	})
