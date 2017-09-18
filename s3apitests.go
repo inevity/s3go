@@ -26,7 +26,8 @@ Usage:
   s3apitests unpack <file> <path> [--context=<k1=v2,k2=v2>]
   s3apitests rotate [<pattern>]
   s3apitests version
-  s3apitests --uid=<name>
+  s3apitests s3 --uid=<name> [--server=<ip>]
+
 Options:
   -h --help  Show this help information.
 Environment Variables:
@@ -68,6 +69,7 @@ func createuser(uid interface{}) (suid string, acckey string, seckey string, F *
 		//url = "http://192.168.56.101:6080/admin/user?uid=uuuuuuu8&quota-type=user&max-size-kb=10000000&max-objects=10000&enabled=-1"
 		url = server + admport + "/admin/user?uid=uuuuuuu8&quota-type=user&max-size-kb=10000000&max-objects=10000&enabled=-1"
 	}
+	fmt.Println("creatuserurl:", url)
 	req, _ := http.NewRequest("PUT", url, nil)
 
 	awsauth.SignS3(req, awsauth.Credentials{
@@ -75,6 +77,7 @@ func createuser(uid interface{}) (suid string, acckey string, seckey string, F *
 		SecretAccessKey: "PXhbQDJVeF1PsXw5tsCuIaKY0N8s1BP2J3yCn9K3",
 		//	SecurityToken: "Security Token",	// STS (optional)
 	}) // Automatically chooses the best signing mechanism for the service
+	fmt.Println("end createusers3sign")
 
 	F = frisby.Create("Test successful user create").Put(url)
 	for k, vv := range req.Header {
@@ -210,11 +213,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("args:", args)
 	var buf bytes.Buffer
 	logger := log.New(&buf, "logger: ", log.Lshortfile)
 	logger.Print("uid args") //why not output to standard console
-	logger.Print("uid args: %s", args["--uid"])
-	fmt.Println("buf:", buf)
+	//logger.Print("uid args: %s", args["--uid"].(string))
+	//	logger.Print("uid args: %s", args["--uid"])
+	//	logger.Print("server args: %s", args["--server"].(string))
+	//	fmt.Println("buf:", buf)
+	//	fmt.Println("argsserver:", args["--server"])
 
 	if args["version"] == true {
 		fmt.Printf(
@@ -226,6 +233,14 @@ func main() {
 	//	manager := loadManager()
 	//https://github.com/codahale/sneaker/blob/master/cmd/sneaker/main.go
 	//cli write
+	if args["--server"] != nil {
+		server = args["--server"].(string)
+		admport = ":6080"
+		dataport = ":6081"
+		b = server + admport + "/admin/user?uid="
+		bkturl = server + admport + "/admin/bucket"
+
+	}
 
 	// create user,using this acckey as admin key
 	user, acckey, seckey, F := createuser(args["--uid"])
@@ -233,7 +248,9 @@ func main() {
 	// create bucket, and create object.
 	// get above use acc and sec key ,then put bucket and object.
 	// todo; fail ,check DoBktObj(acckey, seckey, server+dataport, "newbucket9", "test@object9", 0, 0)
-	DoBktObj(acckey, seckey, server+dataport, "newbucket9", "testob@ject9", 0, 0)
+	//DoBktObj(acckey, seckey, server+dataport, "newbucket9", "testob@ject9", 0, 0)
+	// for nginx proxy, url encode case,now omit !!!
+	DoBktObj(acckey, seckey, server+dataport, "newbucket9", "testobject9", 0, 0)
 
 	//create another user,check user stats then put bucket,check user stats,put n object ,the check user stats.
 	var emptyuser string
